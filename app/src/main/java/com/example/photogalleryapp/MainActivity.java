@@ -40,8 +40,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
 
-        // Hallooooooooo world
-
         //Hi Graaaaaaaant
 
         //Does this still say "hi Grant?"
