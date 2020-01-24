@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
 
+        //Hi Graaaaaaaant
         //Date minDate = new Date(Long.MIN_VALUE);
         //Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
         photoGallery = populateGallery(minDate, maxDate);	// Retrieve photos in date range
