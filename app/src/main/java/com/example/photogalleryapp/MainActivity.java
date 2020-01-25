@@ -12,7 +12,11 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,10 +28,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private int currentPhotoIndex = 0;
     private ArrayList<String> photoGallery;
+    private ArrayList<String> captions;
     private String currentPhotoPath = null;
     static Date minDate = new Date(Long.MIN_VALUE);
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
-    String mCurrentPhotoPath;
+    //String mCurrentPhotoPath;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,8 +42,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         Button btnLeft = (Button)findViewById(R.id.btnLeft);
         Button btnRight = (Button)findViewById(R.id.btnRight);
+        Button btnApply = (Button)findViewById(R.id.applyCaption);
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
+        btnApply.setOnClickListener(this);
 
         //Date minDate = new Date(Long.MIN_VALUE);
         //Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
@@ -71,6 +78,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void displayPhoto(String path) {
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
         iv.setImageBitmap(BitmapFactory.decodeFile(path));
+        // Sequence to separate information in file path to retrieve caption
+        // May need to be edited when adding GPS functionality
+        String delims = "[_]+";
+        String[] tokens = path.split(delims);
+
+        String caption = tokens[1];
+        EditText captionView = (EditText) findViewById(R.id.editText);
+        captionView.setText(caption);
+    }
+
+    // Could create text file with same file name as image to store each caption
+    // Set caption function needs to be properly implemented
+    private void setCap(String newCap){
+        EditText capText = (EditText) findViewById(R.id.editText);
+        String text = "Hello World";
+        capText.setText(text);
     }
 
     public void onClick( View v) {
@@ -81,6 +104,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btnRight:
                 ++currentPhotoIndex;
                 break;
+            case R.id.applyCaption:
+                EditText capText = (EditText) findViewById(R.id.editText);
+                setCap(capText.getText().toString());
             default:
                 break;
         }
@@ -115,16 +141,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
-  /*  public File createImageFile() throws IOException {
-        // Generate empty JPEG file with timestamp
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(imageFileName, ".jpg",storageDir);
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
-    }*/
 
     // This method is for event handling - specifically the event of returning from the camera activity
     // at this point the picture should be displayed in the image view
@@ -145,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        String imageFileName = "_No Caption_JPEG_" + timeStamp + "_";
         File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName, ".jpg", dir );
         currentPhotoPath = image.getAbsolutePath();

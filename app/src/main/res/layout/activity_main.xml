@@ -31,9 +31,20 @@
 
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="45dp"
+        android:layout_marginBottom="8dp"
         android:onClick="takePicture"
         android:text="snap" />
+
+    <Button
+        android:id="@+id/btnRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btnLeft"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="11dp"
+        android:layout_marginRight="11dp"
+        android:text="right" />
 
     <Button
         android:id="@+id/btnLeft"
@@ -44,18 +55,29 @@
         android:layout_alignParentLeft="true"
         android:layout_marginStart="11dp"
         android:layout_marginLeft="11dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="10dp"
         android:text="left" />
 
-    <Button
-        android:id="@+id/btnRight"
+    <EditText
+        android:id="@+id/editText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/btnLeft"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
+        android:layout_below="@+id/ivGallery"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="10dp"
+        android:ems="10"
+        android:text="Caption" />
+
+    <Button
+        android:id="@+id/applyCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ivGallery"
+        android:layout_marginEnd="11dp"
         android:layout_marginRight="11dp"
-        android:text="right" />
+        android:layout_marginTop="10dp"
+        android:layout_toEndOf="@+id/editText"
+        android:text="Apply" />
 
 
 </RelativeLayout>
