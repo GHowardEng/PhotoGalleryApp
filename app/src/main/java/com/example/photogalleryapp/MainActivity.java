@@ -19,6 +19,9 @@ import android.widget.TextView;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,8 +31,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private int currentPhotoIndex = 0;
     private ArrayList<String> photoGallery;
-    private ArrayList<String> captions;
+    private ArrayList<String> photoCaptions;
     private String currentPhotoPath = null;
+    private String currentCaptionPath = null;
     static Date minDate = new Date(Long.MIN_VALUE);
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
     //String mCurrentPhotoPath;
@@ -51,9 +55,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
         photoGallery = populateGallery(minDate, maxDate);	// Retrieve photos in date range
         Log.d("onCreate, size", Integer.toString(photoGallery.size()));
-        if (photoGallery.size() > 0)
+        if (photoGallery.size() > 0) {
             currentPhotoPath = photoGallery.get(currentPhotoIndex);
-        displayPhoto(currentPhotoPath);
+            currentCaptionPath = photoCaptions.get(currentPhotoIndex);
+            displayPhoto(currentPhotoPath, currentCaptionPath);
+        }
     }
     private View.OnClickListener filterListener = new View.OnClickListener() {
         public void onClick(View v) {
@@ -65,35 +71,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<String> populateGallery(Date minDate, Date maxDate) {
         File file = new File(Environment.getExternalStorageDirectory()
                 .getAbsolutePath(), "/Android/data/com.example.photogalleryapp/files/Pictures");
+        File txt = getExternalFilesDir(Environment.DIRECTORY_DCIM);
+
         photoGallery = new ArrayList<String>();
+        photoCaptions = new ArrayList<String>();
+
+        // Generate array of locations of images to be displayed
         File[] fList = file.listFiles();
         if (fList != null) {
             for (File f : file.listFiles()) {
                 photoGallery.add(f.getPath());
             }
         }
+
+        // Generate array of locations of accompanying captions
+        File[] capList = txt.listFiles();
+        if (capList != null){
+            for (File f : txt.listFiles()){
+                photoCaptions.add(f.getPath());
+            }
+        }
         return photoGallery;
     }
 
-    private void displayPhoto(String path) {
+    private void displayPhoto(String path, String capPath) {
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
         iv.setImageBitmap(BitmapFactory.decodeFile(path));
-        // Sequence to separate information in file path to retrieve caption
-        // May need to be edited when adding GPS functionality
-        String delims = "[_]+";
-        String[] tokens = path.split(delims);
 
-        String caption = tokens[1];
         EditText captionView = (EditText) findViewById(R.id.editText);
-        captionView.setText(caption);
+        captionView.setText(getCap(capPath));
     }
 
-    // Could create text file with same file name as image to store each caption
-    // Set caption function needs to be properly implemented
-    private void setCap(String newCap){
-        EditText capText = (EditText) findViewById(R.id.editText);
-        String text = "Hello World";
-        capText.setText(text);
+    // Sequence to retrieve caption
+    // May need to be edited when adding GPS functionality
+    private String getCap(String path) {
+        String cap = null;
+
+        try {
+            FileInputStream fis = new FileInputStream(path);
+            byte[] buffer = new byte[10];
+            StringBuilder sb = new StringBuilder();
+            while (fis.read(buffer) != -1) {
+                sb.append(new String(buffer));
+                buffer = new byte[10];
+            }
+            fis.close();
+            cap = sb.toString();
+
+        }
+        catch (IOException e){
+
+        }
+        return cap;
+    }
+    // Set caption by writing to accompanying text file
+    private void setCap(String newCap, String path){
+        try {
+            FileWriter writer = new FileWriter(path);
+            writer.write(newCap);
+            writer.flush();
+            writer.close();
+        }
+        catch (IOException e){
+
+        }
     }
 
     public void onClick( View v) {
@@ -106,7 +147,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.applyCaption:
                 EditText capText = (EditText) findViewById(R.id.editText);
-                setCap(capText.getText().toString());
+                currentCaptionPath = photoCaptions.get(currentPhotoIndex);
+                setCap(capText.getText().toString(), currentCaptionPath);
             default:
                 break;
         }
@@ -116,9 +158,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             currentPhotoIndex = photoGallery.size() - 1;
         if(photoGallery.size() > 0) {
             currentPhotoPath = photoGallery.get(currentPhotoIndex);
-            Log.d("phpotoleft, size", Integer.toString(photoGallery.size()));
+            currentCaptionPath = photoCaptions.get(currentPhotoIndex);
+            Log.d("photoleft, size", Integer.toString(photoGallery.size()));
             Log.d("photoleft, index", Integer.toString(currentPhotoIndex));
-            displayPhoto(currentPhotoPath);
+            displayPhoto(currentPhotoPath, currentCaptionPath);
         }
     }
 
@@ -152,18 +195,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Set photo index to display newest image
             currentPhotoIndex = photoGallery.size() - 1;
             // Get path of newest image
+            currentCaptionPath = photoCaptions.get(currentPhotoIndex);
             currentPhotoPath = photoGallery.get(currentPhotoIndex);
             // Set image view to display newest image
-            ImageView mImageView = findViewById(R.id.ivGallery);
-            mImageView.setImageBitmap(BitmapFactory.decodeFile(currentPhotoPath));
+            displayPhoto(currentPhotoPath, currentCaptionPath);
         }
     }
 
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "_No Caption_JPEG_" + timeStamp + "_";
+        String imageFileName = "JPEG_" + timeStamp + "_";
         File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName, ".jpg", dir );
+
+        File txtdir = getExternalFilesDir(Environment.DIRECTORY_DCIM);
+        File capTxt = File.createTempFile(imageFileName, ".txt", txtdir);
+        FileWriter writer = new FileWriter(capTxt);
+        writer.write("No Caption");
+        writer.flush();
+        writer.close();
+
         currentPhotoPath = image.getAbsolutePath();
         Log.d("createImageFile", currentPhotoPath);
         return image;
