@@ -95,46 +95,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void displayPhoto(String path, String capPath) {
+        // Decode and display image
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
         iv.setImageBitmap(BitmapFactory.decodeFile(path));
 
+        // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
-        captionView.setText(getCap(capPath));
+        try{captionView.setText(getCap(capPath));}
+        catch(IOException e){}
     }
 
-    // Sequence to retrieve caption
+    // Method to retrieve caption from text file
     // May need to be edited when adding GPS functionality
-    private String getCap(String path) {
+    private String getCap(String path) throws IOException{
         String cap = null;
-
-        try {
-            FileInputStream fis = new FileInputStream(path);
-            byte[] buffer = new byte[10];
-            StringBuilder sb = new StringBuilder();
-            while (fis.read(buffer) != -1) {
-                sb.append(new String(buffer));
-                buffer = new byte[10];
-            }
-            fis.close();
-            cap = sb.toString();
-
+        FileInputStream fis = new FileInputStream(path);
+        byte[] buffer = new byte[10];
+        StringBuilder sb = new StringBuilder();
+        while (fis.read(buffer) != -1) {
+            sb.append(new String(buffer));
+            buffer = new byte[10];
         }
-        catch (IOException e){
+        fis.close();
+        cap = sb.toString();
 
-        }
         return cap;
     }
     // Set caption by writing to accompanying text file
-    private void setCap(String newCap, String path){
-        try {
-            FileWriter writer = new FileWriter(path);
-            writer.write(newCap);
-            writer.flush();
-            writer.close();
-        }
-        catch (IOException e){
-
-        }
+    private void setCap(String newCap, String path) throws IOException{
+        // Open file
+        FileWriter writer = new FileWriter(path);
+        // Overwrite with new caption
+        writer.write(newCap);
+        writer.flush();
+        writer.close();
     }
 
     public void onClick( View v) {
@@ -148,15 +142,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.applyCaption:
                 EditText capText = (EditText) findViewById(R.id.editText);
                 currentCaptionPath = photoCaptions.get(currentPhotoIndex);
-                setCap(capText.getText().toString(), currentCaptionPath);
+                try {setCap(capText.getText().toString(), currentCaptionPath);}
+                catch(IOException e){}
+
             default:
                 break;
         }
+        // Error checking photo index
         if (currentPhotoIndex < 0)
             currentPhotoIndex = 0;
         if (currentPhotoIndex >= photoGallery.size())
             currentPhotoIndex = photoGallery.size() - 1;
         if(photoGallery.size() > 0) {
+            // Update photo and caption path, display on screen
             currentPhotoPath = photoGallery.get(currentPhotoIndex);
             currentCaptionPath = photoCaptions.get(currentPhotoIndex);
             Log.d("photoleft, size", Integer.toString(photoGallery.size()));
@@ -202,14 +200,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    // Method to generate JPEG file to store image and txt file to store caption
     private File createImageFile() throws IOException {
+        // Generate image name with timestamp
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
+
+        // Get file path for image
         File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName, ".jpg", dir );
 
+        // Create directory for caption text file
         File txtdir = getExternalFilesDir(Environment.DIRECTORY_DCIM);
+        // Create text file to store caption
         File capTxt = File.createTempFile(imageFileName, ".txt", txtdir);
+        // Open file for writing
         FileWriter writer = new FileWriter(capTxt);
         writer.write("No Caption");
         writer.flush();
