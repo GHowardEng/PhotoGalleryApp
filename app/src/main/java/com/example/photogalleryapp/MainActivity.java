@@ -23,17 +23,20 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    public static final int SEARCH_ACTIVITY_REQUEST_CODE = 1;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private int currentPhotoIndex = 0;
     private ArrayList<String> photoGallery;
     private ArrayList<String> photoCaptions;
     private String currentPhotoPath = null;
     private String currentCaptionPath = null;
+    private String galleryState = null;
     static Date minDate = new Date(Long.MIN_VALUE);
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
 
@@ -46,9 +49,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button btnLeft = (Button)findViewById(R.id.btnLeft);
         Button btnRight = (Button)findViewById(R.id.btnRight);
         Button btnApply = (Button)findViewById(R.id.applyCaption);
+        Button btnFilter = (Button)findViewById(R.id.btnFilter);
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
+        btnFilter.setOnClickListener(filterListener);
 
         photoGallery = populateGallery(minDate, maxDate);	// Retrieve photos in date range
         Log.d("onCreate, size", Integer.toString(photoGallery.size()));
@@ -60,8 +65,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     private View.OnClickListener filterListener = new View.OnClickListener() {
         public void onClick(View v) {
-            //Intent i = new Intent(MainActivity.this, SearchActivity.class);
-            //startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
+            Intent i = new Intent(MainActivity.this, SearchActivity.class);
+            startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
         }
     };
 
@@ -79,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (File f : file.listFiles()) {
                 photoGallery.add(f.getPath());
 
-                String[] date = getDate(f.getPath());
+                Date date = getDate(f.getPath());
             }
         }
 
@@ -97,6 +102,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Decode and display image
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
         iv.setImageBitmap(BitmapFactory.decodeFile(path));
+
+        galleryState = (currentPhotoIndex+1) + " of " + photoGallery.size();
+        TextView stateText = (TextView) findViewById(R.id.state);
+        stateText.setText(galleryState);
+
+        getDate(photoGallery.get(currentPhotoIndex));
 
         // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
@@ -130,12 +141,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         writer.close();
     }
 
-    private String[] getDate(String path){
+    private Date getDate(String path){
+        Date date = new Date();
         String[] contents = path.split("_");
-        String[] date = new String[2];
-        date[0] = contents[1];
-        date[1] = contents[2];
 
+        // Code to return as string array
+        //String[] date = new String[2];
+        //date[0] = contents[1];
+        //date[1] = contents[2];
+
+        // Return as date object
+        try{date = new SimpleDateFormat("yyyyMMdd_HHmmss").parse(contents[1] + "_" + contents[2]);}
+        catch(ParseException e){}
         // Returns date info in string array, first element yyyymmdd, second element hhmmss
         return date;
     }

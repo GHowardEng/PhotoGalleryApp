@@ -14,10 +14,8 @@
         android:layout_width="wrap_content"
         android:layout_height="324dp"
         android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:adjustViewBounds="true"
         android:maxWidth="42dp"
         android:maxHeight="42dp"
@@ -41,10 +39,17 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/btnLeft"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:layout_marginEnd="11dp"
-        android:layout_marginRight="11dp"
         android:text="right" />
+
+    <Button
+        android:id="@+id/btnFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btnSnap"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:text="filter" />
 
     <Button
         android:id="@+id/btnLeft"
@@ -52,9 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/btnSnap"
         android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
         android:layout_marginStart="11dp"
-        android:layout_marginLeft="11dp"
         android:layout_marginBottom="10dp"
         android:text="left" />
 
@@ -63,8 +66,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ivGallery"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:ems="10"
         android:text="No Caption" />
 
@@ -74,10 +76,17 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/ivGallery"
         android:layout_marginEnd="11dp"
-        android:layout_marginRight="11dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:layout_toEndOf="@+id/editText"
         android:text="Apply" />
+
+    <TextView
+        android:id="@+id/state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ivGallery"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp" />
 
 
 </RelativeLayout>
