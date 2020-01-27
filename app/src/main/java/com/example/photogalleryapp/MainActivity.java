@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String currentCaptionPath = null;
     static Date minDate = new Date(Long.MIN_VALUE);
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
-    //String mCurrentPhotoPath;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,8 +50,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
 
-        //Date minDate = new Date(Long.MIN_VALUE);
-        //Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
         photoGallery = populateGallery(minDate, maxDate);	// Retrieve photos in date range
         Log.d("onCreate, size", Integer.toString(photoGallery.size()));
         if (photoGallery.size() > 0) {
@@ -81,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (fList != null) {
             for (File f : file.listFiles()) {
                 photoGallery.add(f.getPath());
+
+                String[] date = getDate(f.getPath());
             }
         }
 
@@ -129,6 +128,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         writer.write(newCap);
         writer.flush();
         writer.close();
+    }
+
+    private String[] getDate(String path){
+        String[] contents = path.split("_");
+        String[] date = new String[2];
+        date[0] = contents[1];
+        date[1] = contents[2];
+
+        // Returns date info in string array, first element yyyymmdd, second element hhmmss
+        return date;
     }
 
     public void onClick( View v) {
