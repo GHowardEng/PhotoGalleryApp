@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-    public static final int SEARCH_ACTIVITY_REQUEST_CODE = 1;
+    public static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private int currentPhotoIndex = 0;
     private ArrayList<String> photoGallery;
@@ -213,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // at this point the picture should be displayed in the image view
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // Add new picture to gallery and set date range (may need to be changed for filtering)
             populateGallery(minDate, maxDate);
@@ -223,6 +224,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             currentPhotoPath = photoGallery.get(currentPhotoIndex);
             // Set image view to display newest image
             displayPhoto(currentPhotoPath, currentCaptionPath);
+        }
+        else if(requestCode == REQUEST_IMAGE_CAPTURE){
+            populateGallery(minDate, maxDate);
+            // Delete empty photo and caption files if camera activity does not complete successfully
+            File nullPhoto = new File(photoGallery.get(photoGallery.size()-1));
+            nullPhoto.delete();
+
+            nullPhoto = new File(photoCaptions.get(photoGallery.size()-1));
+            nullPhoto.delete();
+
+            populateGallery(minDate,maxDate);
         }
     }
 
