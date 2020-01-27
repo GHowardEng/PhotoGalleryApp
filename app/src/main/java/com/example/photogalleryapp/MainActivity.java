@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-    public static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
+    static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private int currentPhotoIndex = 0;
     private ArrayList<String> photoGallery;
