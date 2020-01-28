@@ -28,6 +28,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import javax.xml.transform.Result;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -37,6 +39,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String currentPhotoPath = null;
     private String currentCaptionPath = null;
     private String galleryState = null;
+    private Date startDate = null;
+    private Date endDate = null;
+    private String captionSearch = null;
     static Date minDate = new Date(Long.MIN_VALUE);
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
 
@@ -70,7 +75,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    private ArrayList<String> populateGallery(Date minDate, Date maxDate) {
+    private ArrayList<String> populateGallery(Date min, Date max) {
+        int i = 0;
         File file = new File(Environment.getExternalStorageDirectory()
                 .getAbsolutePath(), "/Android/data/com.example.photogalleryapp/files/Pictures");
         File txt = getExternalFilesDir(Environment.DIRECTORY_DCIM);
@@ -80,34 +86,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Generate array of locations of images to be displayed
         File[] fList = file.listFiles();
+        File[] capList = txt.listFiles();
         if (fList != null) {
             for (File f : file.listFiles()) {
-                photoGallery.add(f.getPath());
-
                 Date date = getDate(f.getPath());
+                if(date.compareTo(min) >= 0 && date.compareTo(max) <=0) {
+                    photoGallery.add(f.getPath());
+                    photoCaptions.add(capList[i].getPath());
+                }
+                i++;
             }
         }
 
         // Generate array of locations of accompanying captions
-        File[] capList = txt.listFiles();
+        /*File[] capList = txt.listFiles();
         if (capList != null){
             for (File f : txt.listFiles()){
                 photoCaptions.add(f.getPath());
             }
-        }
+        }*/
         return photoGallery;
     }
 
     private void displayPhoto(String path, String capPath) {
         // Decode and display image
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
-        iv.setImageBitmap(BitmapFactory.decodeFile(path));
-
-        galleryState = (currentPhotoIndex+1) + " of " + photoGallery.size();
-        TextView stateText = (TextView) findViewById(R.id.state);
-        stateText.setText(galleryState);
-
-        getDate(photoGallery.get(currentPhotoIndex));
+        if(photoGallery.size() > 0) {
+            iv.setImageBitmap(BitmapFactory.decodeFile(path));
+            galleryState = (currentPhotoIndex+1) + " of " + photoGallery.size();
+            TextView stateText = (TextView) findViewById(R.id.state);
+            stateText.setText(galleryState);
+        }
 
         // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
@@ -166,11 +175,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ++currentPhotoIndex;
                 break;
             case R.id.applyCaption:
-                EditText capText = (EditText) findViewById(R.id.editText);
-                currentCaptionPath = photoCaptions.get(currentPhotoIndex);
-                try {setCap(capText.getText().toString(), currentCaptionPath);}
-                catch(IOException e){}
-
+                if(photoGallery.size() > 0) {
+                    EditText capText = (EditText) findViewById(R.id.editText);
+                    currentCaptionPath = photoCaptions.get(currentPhotoIndex);
+                    try {
+                        setCap(capText.getText().toString(), currentCaptionPath);
+                    } catch (IOException e) {}
+                }
+                break;
             default:
                 break;
         }
@@ -225,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Set image view to display newest image
             displayPhoto(currentPhotoPath, currentCaptionPath);
         }
-        else if(requestCode == REQUEST_IMAGE_CAPTURE){
+        else if (requestCode == REQUEST_IMAGE_CAPTURE){
             populateGallery(minDate, maxDate);
             // Delete empty photo and caption files if camera activity does not complete successfully
             File nullPhoto = new File(photoGallery.get(photoGallery.size()-1));
@@ -235,6 +247,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             nullPhoto.delete();
 
             populateGallery(minDate,maxDate);
+        }
+
+        else if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
+            // Receive search filters from search activity
+            try {
+                startDate = new SimpleDateFormat("yyyy-mm-dd").parse(data.getStringExtra("STARTDATE"));
+                endDate   = new SimpleDateFormat("yyyy-mm-dd").parse(data.getStringExtra("ENDDATE"));
+            }
+            catch (ParseException e){}
+            captionSearch = data.getStringExtra("CAPTION");
+
+            TextView noResult = (TextView) findViewById((R.id.noResult));
+
+           // Need to convert strings to date objects
+           populateGallery(startDate,endDate);
+           currentPhotoIndex = 0;
+           if(photoGallery.size() > 0) {
+               noResult.setText("");
+               displayPhoto(photoGallery.get(currentPhotoIndex), photoCaptions.get(currentPhotoIndex));
+           }
+           // No photos found
+           else{
+               ImageView iv = (ImageView) findViewById(R.id.ivGallery);
+               iv.setImageBitmap(null);
+               galleryState = "0 of 0";
+               TextView stateText = (TextView) findViewById(R.id.state);
+               stateText.setText(galleryState);
+               EditText captionView = (EditText) findViewById(R.id.editText);
+               captionView.setText("No Caption");
+               noResult.setText("No photos found. Try adjusting search filters.");
+           }
         }
     }
 
