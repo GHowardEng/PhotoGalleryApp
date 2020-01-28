@@ -109,9 +109,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void displayPhoto(String path, String capPath) {
-        // Decode and display image
-        ImageView iv = (ImageView) findViewById(R.id.ivGallery);
 
+        ImageView iv = (ImageView) findViewById(R.id.ivGallery);
+        TextView noResult = (TextView) findViewById((R.id.noResult));
+        noResult.setText("");
+        // Decode and display image
         iv.setImageBitmap(BitmapFactory.decodeFile(path));
         galleryState = (currentPhotoIndex+1) + " of " + photoGallery.size();
         TextView stateText = (TextView) findViewById(R.id.state);
