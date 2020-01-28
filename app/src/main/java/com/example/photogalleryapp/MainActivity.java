@@ -238,16 +238,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         else if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
             // Receive search filters from search activity
-            try {
-                startDate = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("STARTDATE"));
-                endDate   = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("ENDDATE"));
+            if(startDate != null && endDate != null) {
+                try {
+                    startDate = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("STARTDATE"));
+                    endDate = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("ENDDATE"));
+                } catch (ParseException e) {
+                }
             }
-            catch (ParseException e){}
+            else{
+                startDate = minDate;
+                endDate = maxDate;
+            }
             captionSearch = data.getStringExtra("CAPTION");
-
             TextView noResult = (TextView) findViewById((R.id.noResult));
-
-           // Need to convert strings to date objects
            populateGallery(startDate,endDate);
            currentPhotoIndex = 0;
            if(photoGallery.size() > 0) {
@@ -256,10 +259,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            }
            // No photos found
            else{
+               TextView dateText = findViewById(R.id.dateText);
+               dateText.setText("");
                ImageView iv = (ImageView) findViewById(R.id.ivGallery);
                iv.setImageBitmap(null);
                EditText captionView = (EditText) findViewById(R.id.editText);
-               captionView.setText("No Caption");
+               captionView.setText("Caption");
                noResult.setText("No photos found. Try adjusting search filters.");
            }
         }
@@ -281,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         File capTxt = File.createTempFile(imageFileName, ".txt", txtdir);
         // Open file for writing
         FileWriter writer = new FileWriter(capTxt);
-        writer.write("No Caption");
+        writer.write("Caption");
         writer.flush();
         writer.close();
 
