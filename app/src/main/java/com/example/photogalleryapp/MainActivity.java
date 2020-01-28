@@ -111,12 +111,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void displayPhoto(String path, String capPath) {
         // Decode and display image
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
-        if(photoGallery.size() > 0) {
-            iv.setImageBitmap(BitmapFactory.decodeFile(path));
-            galleryState = (currentPhotoIndex+1) + " of " + photoGallery.size();
-            TextView stateText = (TextView) findViewById(R.id.state);
-            stateText.setText(galleryState);
-        }
+
+        iv.setImageBitmap(BitmapFactory.decodeFile(path));
+        galleryState = (currentPhotoIndex+1) + " of " + photoGallery.size();
+        TextView stateText = (TextView) findViewById(R.id.state);
+        stateText.setText(galleryState);
+
 
         // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
@@ -252,8 +252,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
             // Receive search filters from search activity
             try {
-                startDate = new SimpleDateFormat("yyyy-mm-dd").parse(data.getStringExtra("STARTDATE"));
-                endDate   = new SimpleDateFormat("yyyy-mm-dd").parse(data.getStringExtra("ENDDATE"));
+                startDate = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("STARTDATE"));
+                endDate   = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("ENDDATE"));
             }
             catch (ParseException e){}
             captionSearch = data.getStringExtra("CAPTION");
