@@ -33,18 +33,17 @@ import javax.xml.transform.Result;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    private int currentPhotoIndex = 0;
+    public int currentPhotoIndex = 0;
     private ArrayList<String> photoGallery;
     private ArrayList<String> photoCaptions;
     private String currentPhotoPath = null;
     private String currentCaptionPath = null;
     private String galleryState = null;
-    private Date startDate = null;
-    private Date endDate = null;
     private String captionSearch = null;
     static Date minDate = new Date(Long.MIN_VALUE);
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
-
+    private Date startDate = minDate;
+    private Date endDate = maxDate;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Get saved context
@@ -91,13 +90,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (File f : file.listFiles()) {
                 Date date = getDate(f.getPath());
                 if(date.compareTo(min) >= 0 && date.compareTo(max) <=0) {
-                    photoGallery.add(f.getPath());
-                    photoCaptions.add(capList[i].getPath());
+                    if (captionSearch == null) {
+                        photoGallery.add(f.getPath());
+                        photoCaptions.add(capList[i].getPath());
+                    }
+                    else if(getCap(capList[i].getPath()).matches("(.*)" + captionSearch + "(.*)")){
+                        photoGallery.add(f.getPath());
+                        photoCaptions.add(capList[i].getPath());
+                    }
                 }
                 i++;
             }
         }
-
         return photoGallery;
     }
 
@@ -114,23 +118,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
-        try{captionView.setText(getCap(capPath));}
-        catch(IOException e){}
+        captionView.setText(getCap(capPath));
     }
 
     // Method to retrieve caption from text file
     // May need to be edited when adding GPS functionality
-    private String getCap(String path) throws IOException{
+    private String getCap(String path) {
         String cap = null;
-        FileInputStream fis = new FileInputStream(path);
-        byte[] buffer = new byte[10];
-        StringBuilder sb = new StringBuilder();
-        while (fis.read(buffer) != -1) {
-            sb.append(new String(buffer));
-            buffer = new byte[10];
+        try {
+            FileInputStream fis = new FileInputStream(path);
+            byte[] buffer = new byte[10];
+            StringBuilder sb = new StringBuilder();
+            while (fis.read(buffer) != -1) {
+                sb.append(new String(buffer));
+                buffer = new byte[10];
+            }
+            fis.close();
+            cap = sb.toString();
         }
-        fis.close();
-        cap = sb.toString();
+        catch (IOException e){}
 
         return cap;
     }
@@ -215,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // Add new picture to gallery and set date range (may need to be changed for filtering)
+            captionSearch = null;
             populateGallery(minDate, maxDate);
             // Set photo index to display newest image
             currentPhotoIndex = photoGallery.size() - 1;
