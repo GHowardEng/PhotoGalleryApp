@@ -81,7 +81,7 @@
         android:text="Apply" />
 
     <TextView
-        android:id="@+id/state"
+        android:id="@+id/dateText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ivGallery"

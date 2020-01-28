@@ -98,27 +98,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        // Generate array of locations of accompanying captions
-        /*File[] capList = txt.listFiles();
-        if (capList != null){
-            for (File f : txt.listFiles()){
-                photoCaptions.add(f.getPath());
-            }
-        }*/
         return photoGallery;
     }
 
     private void displayPhoto(String path, String capPath) {
-
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
         TextView noResult = (TextView) findViewById((R.id.noResult));
         noResult.setText("");
         // Decode and display image
         iv.setImageBitmap(BitmapFactory.decodeFile(path));
-        galleryState = (currentPhotoIndex+1) + " of " + photoGallery.size();
-        TextView stateText = (TextView) findViewById(R.id.state);
-        stateText.setText(galleryState);
 
+        // Set textView to show timestamp
+        TextView dateText = (TextView) findViewById(R.id.dateText);
+        dateText.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(getDate(path)));
 
         // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
@@ -155,16 +147,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Date getDate(String path){
         Date date = new Date();
         String[] contents = path.split("_");
-
-        // Code to return as string array
-        //String[] date = new String[2];
-        //date[0] = contents[1];
-        //date[1] = contents[2];
-
-        // Return as date object
         try{date = new SimpleDateFormat("yyyyMMdd_HHmmss").parse(contents[1] + "_" + contents[2]);}
         catch(ParseException e){}
-        // Returns date info in string array, first element yyyymmdd, second element hhmmss
+
         return date;
     }
 
@@ -273,9 +258,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            else{
                ImageView iv = (ImageView) findViewById(R.id.ivGallery);
                iv.setImageBitmap(null);
-               galleryState = "0 of 0";
-               TextView stateText = (TextView) findViewById(R.id.state);
-               stateText.setText(galleryState);
                EditText captionView = (EditText) findViewById(R.id.editText);
                captionView.setText("No Caption");
                noResult.setText("No photos found. Try adjusting search filters.");
