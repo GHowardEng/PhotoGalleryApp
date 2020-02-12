@@ -30,6 +30,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="8dp"
+        android:backgroundTint="#2196F3"
         android:onClick="takePicture"
         android:text="snap" />
 
@@ -49,7 +50,9 @@
         android:layout_above="@+id/btnSnap"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
-        android:text="filter" />
+        android:backgroundTint="#FF5722"
+        android:text="filter"
+        android:textColor="#D1D1D1" />
 
     <Button
         android:id="@+id/btnLeft"
@@ -78,6 +81,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="11dp"
+        android:backgroundTint="#4CAF50"
         android:text="Apply" />
 
     <TextView

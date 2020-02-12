@@ -1,10 +1,17 @@
 package com.example.photogalleryapp;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -15,6 +22,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.w3c.dom.Text;
 
@@ -27,6 +39,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.xml.transform.Result;
 
@@ -44,6 +57,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
     private Date startDate = minDate;
     private Date endDate = maxDate;
+    private FusedLocationProviderClient fusedLocationClient;
+    private Location loc;
+    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
+    String[] PERMISSIONS = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Get saved context
@@ -58,6 +77,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
         btnFilter.setOnClickListener(filterListener);
+        // Request permissions for location
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                REQUEST_PERMISSIONS_REQUEST_CODE);
+        // Instantiate Location Client
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        // Override onSuccess to store location in class member loc
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            loc = location;
+                        }
+                    }
+                });
 
         photoGallery = populateGallery(minDate, maxDate);	// Retrieve photos in date range
         Log.d("onCreate, size", Integer.toString(photoGallery.size()));
@@ -67,12 +102,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             displayPhoto(currentPhotoPath, currentCaptionPath);
         }
     }
+
+
     private View.OnClickListener filterListener = new View.OnClickListener() {
         public void onClick(View v) {
             Intent i = new Intent(MainActivity.this, SearchActivity.class);
             startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
         }
     };
+
 
     private ArrayList<String> populateGallery(Date min, Date max) {
         int i = 0;
@@ -124,7 +162,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // Method to retrieve caption from text file
     // May need to be edited when adding GPS functionality
     private String getCap(String path) {
-        String cap = null;
+        String[] arr = null;
+        String content = null;
         try {
             FileInputStream fis = new FileInputStream(path);
             byte[] buffer = new byte[10];
@@ -134,11 +173,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 buffer = new byte[10];
             }
             fis.close();
-            cap = sb.toString();
+            content = sb.toString();
+            arr = content.split("_");
         }
         catch (IOException e){}
 
-        return cap;
+
+        return arr[0];
     }
     // Set caption by writing to accompanying text file
     private void setCap(String newCap, String path) throws IOException{
@@ -279,6 +320,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // Method to generate JPEG file to store image and txt file to store caption
     private File createImageFile() throws IOException {
+        // Get location of device
+        fusedLocationClient.getLastLocation();
+
         // Generate image name with timestamp
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -294,6 +338,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Open file for writing
         FileWriter writer = new FileWriter(capTxt);
         writer.write("Caption");
+        if (loc != null) {
+            writer.write("_" + loc.getLatitude() + "_" + loc.getLongitude());
+        }
         writer.flush();
         writer.close();
 

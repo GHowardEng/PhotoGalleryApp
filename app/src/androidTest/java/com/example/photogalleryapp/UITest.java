@@ -61,6 +61,7 @@ public class UITest {
     }
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class);
+    @Rule
     public ActivityTestRule<SearchActivity> sActivityRule = new ActivityTestRule<>(SearchActivity.class);
     @Test
     public void ensureCaptionChangesWork() {
@@ -80,19 +81,19 @@ public class UITest {
     public void ensureSearchingWorks() {
         String startDate = "2020-01-27";
         String endDate   = "2020-01-28";
-
+        // Go to search activity
         onView(withId(R.id.btnFilter)).perform((click()));
-
+        // Click on filter boxes, enter start and end dates
         onView(withId(R.id.search_fromDate)).perform(click());
         onView(withId(R.id.search_fromDate)).perform(typeText(startDate), closeSoftKeyboard());
-
         onView(withId(R.id.search_toDate)).perform(click());
         onView(withId(R.id.search_toDate)).perform(typeText(endDate), closeSoftKeyboard());
-        onView(withId(R.id.captionText)).perform(click(), closeSoftKeyboard());
 
+        // Click on search button
         onView(withId(R.id.search_search)).perform(click());
 
         for (int i = 0; i<=2; i++){
+            // Scroll through 3 expected photos and ensure that all images have date in range
             onView(withId(R.id.dateText)).check(matches(isTextValueEqualTo(startDate)));
             onView(withId(R.id.btnRight)).perform(click());
         }
