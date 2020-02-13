@@ -30,7 +30,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="8dp"
-        android:backgroundTint="#2196F3"
+        android:backgroundTint="#FF5722"
         android:onClick="takePicture"
         android:text="snap" />
 
@@ -50,9 +50,9 @@
         android:layout_above="@+id/btnSnap"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
-        android:backgroundTint="#FF5722"
+        android:backgroundTint="#2196F3"
         android:text="filter"
-        android:textColor="#D1D1D1" />
+        android:textColor="#070606" />
 
     <Button
         android:id="@+id/btnLeft"

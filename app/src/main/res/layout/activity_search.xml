@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
 
     tools:context="com.example.photogalleryapp.SearchActivity">
+
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -77,6 +79,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginStart="50dp"
         android:layout_marginBottom="25dp"
+        android:backgroundTint="#2196F3"
         android:onClick="search"
         android:text="Search" />
 
@@ -86,7 +89,17 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/search_toDate"
         android:layout_alignEnd="@+id/search_toDate"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="0dp"
+        android:ems="10" />
+
+    <EditText
+        android:id="@+id/editLat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/captionText"
+        android:layout_alignEnd="@+id/search_toDate"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="0dp"
         android:ems="10" />
 
@@ -108,5 +121,55 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp"
         android:text="Use YYYY-MM-DD Date Format" />
+
+    <TextView
+        android:id="@+id/lat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/editLat"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="11dp"
+        android:text="Latitude" />
+
+    <TextView
+        android:id="@+id/lat2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/editLong"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="11dp"
+        android:text="Longitude" />
+
+    <TextView
+        android:id="@+id/dist"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/editDist"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="11dp"
+        android:text="Radial Distance" />
+
+    <EditText
+        android:id="@+id/editLong"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editLat"
+        android:layout_alignEnd="@+id/search_toDate"
+        android:layout_marginTop="20dp"
+        android:ems="10" />
+
+    <EditText
+        android:id="@+id/editDist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editLong"
+        android:layout_alignEnd="@+id/search_toDate"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="0dp"
+        android:ems="10" />
+
 
 </RelativeLayout>

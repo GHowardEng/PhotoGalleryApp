@@ -58,10 +58,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Date startDate = minDate;
     private Date endDate = maxDate;
     private FusedLocationProviderClient fusedLocationClient;
-    private Location loc;
+    private Location loc = new Location("");
+    private Location searchLoc = new Location("");
+    private int defaultDist = 80000;    // default distance search value
+    private double searchDist = defaultDist;
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
-    String[] PERMISSIONS = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -121,13 +122,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         photoGallery = new ArrayList<String>();
         photoCaptions = new ArrayList<String>();
 
-        // Generate array of locations of images to be displayed
+        // Generate array of paths of images to be displayed
         File[] fList = file.listFiles();
         File[] capList = txt.listFiles();
         if (fList != null) {
             for (File f : file.listFiles()) {
                 Date date = getDate(f.getPath());
-                if(date.compareTo(min) >= 0 && date.compareTo(max) <=0) {
+                loc = getLoc(capList[i].getPath());
+                double dist = getDist(loc, searchLoc);
+                if(date.compareTo(min) >= 0 && date.compareTo(max) <=0 && dist <= searchDist) {
                     if (captionSearch == null) {
                         photoGallery.add(f.getPath());
                         photoCaptions.add(capList[i].getPath());
@@ -159,6 +162,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         captionView.setText(getCap(capPath));
     }
 
+    private double getDist(Location loc1, Location loc2){
+        // Radius of Earth in km
+        int R = 6371;
+        // Get lat/long of points, convert to radians
+        double lat1 = loc1.getLatitude() * Math.PI/180;
+        double lat2 = loc2.getLatitude() * Math.PI/180;
+        double long1 = loc1.getLongitude() * Math.PI/180;
+        double long2 = loc2.getLongitude() * Math.PI/180;
+        // Calculate angular difference
+        double dLong= long1 - long2;
+        double dLat = lat1 - lat2;
+
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1) * Math.cos(lat2) *
+                Math.sin(dLong/2) * Math.sin(dLong/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+    private Location getLoc(String path){
+        String[] arr = null;
+        String content = null;
+        Location fileLoc = new Location("");
+        try {
+            FileInputStream fis = new FileInputStream(path);
+            byte[] buffer = new byte[10];
+            StringBuilder sb = new StringBuilder();
+            while (fis.read(buffer) != -1) {
+                sb.append(new String(buffer));
+                buffer = new byte[10];
+            }
+            fis.close();
+            content = sb.toString();
+            arr = content.split("_");
+            fileLoc.setLatitude(Double.parseDouble(arr[1]));
+            fileLoc.setLongitude(Double.parseDouble(arr[2]));
+        }
+        catch (Exception e){}
+
+        return fileLoc;
+    }
     // Method to retrieve caption from text file
     // May need to be edited when adding GPS functionality
     private String getCap(String path) {
@@ -178,15 +219,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         catch (IOException e){}
 
-
         return arr[0];
     }
     // Set caption by writing to accompanying text file
     private void setCap(String newCap, String path) throws IOException{
+        Location fileLoc = getLoc(path);
         // Open file
         FileWriter writer = new FileWriter(path);
         // Overwrite with new caption
-        writer.write(newCap);
+        writer.write(newCap + "_" + fileLoc.getLatitude() + "_" +fileLoc.getLongitude());
         writer.flush();
         writer.close();
     }
@@ -284,6 +325,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             populateGallery(minDate,maxDate);
         }
 
+        // If returning from search activity, update all filter variable with error checking
         else if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
             // Receive search filters from search activity
             if(startDate != null && endDate != null) {
@@ -296,6 +338,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             else{
                 startDate = minDate;
                 endDate = maxDate;
+            }
+            if (data.getStringExtra("LAT").isEmpty() || data.getStringExtra("LONG").isEmpty()){
+                searchLoc.setLongitude(0);
+                searchLoc.setLatitude(0);
+            }
+            else {
+                searchLoc.setLatitude(Double.parseDouble(data.getStringExtra("LAT")));
+                searchLoc.setLongitude(Double.parseDouble(data.getStringExtra("LONG")));
+            }
+            if(data.getStringExtra("DIST").isEmpty()){
+                searchDist = defaultDist;
+            }
+            else{
+                searchDist = Double.parseDouble(data.getStringExtra("DIST"));
             }
             captionSearch = data.getStringExtra("CAPTION");
             TextView noResult = (TextView) findViewById((R.id.noResult));
