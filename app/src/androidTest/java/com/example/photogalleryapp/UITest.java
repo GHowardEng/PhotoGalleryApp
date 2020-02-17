@@ -81,19 +81,30 @@ public class UITest {
     public void ensureSearchingWorks() {
         String startDate = "2020-01-27";
         String endDate   = "2020-01-28";
+        String latitude  = "48";
+        String longitude = "-122";
+        String dist = "100";
+
         // Go to search activity
         onView(withId(R.id.btnFilter)).perform((click()));
+
         // Click on filter boxes, enter start and end dates
         onView(withId(R.id.search_fromDate)).perform(click());
         onView(withId(R.id.search_fromDate)).perform(typeText(startDate), closeSoftKeyboard());
         onView(withId(R.id.search_toDate)).perform(click());
         onView(withId(R.id.search_toDate)).perform(typeText(endDate), closeSoftKeyboard());
+        onView(withId(R.id.editLat)).perform(click());
+        onView(withId(R.id.editLat)).perform(typeText(latitude), closeSoftKeyboard());
+        onView(withId(R.id.editLong)).perform(click());
+        onView(withId(R.id.editLong)).perform(typeText(longitude), closeSoftKeyboard());
+        onView(withId(R.id.editDist)).perform(click());
+        onView(withId(R.id.editDist)).perform(typeText(dist), closeSoftKeyboard());
 
         // Click on search button
         onView(withId(R.id.search_search)).perform(click());
 
+        // Scroll through 3 expected photos and ensure that all images have date in range
         for (int i = 0; i<=2; i++){
-            // Scroll through 3 expected photos and ensure that all images have date in range
             onView(withId(R.id.dateText)).check(matches(isTextValueEqualTo(startDate)));
             onView(withId(R.id.btnRight)).perform(click());
         }

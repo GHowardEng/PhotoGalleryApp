@@ -157,6 +157,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         TextView dateText = (TextView) findViewById(R.id.dateText);
         dateText.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(getDate(path)));
 
+        // Set textView to show location
+        TextView locText = (TextView) findViewById(R.id.locationText);
+        Location photoLoc = getLoc(capPath);
+        String locString = "Latitude: " + Location.convert(photoLoc.getLatitude(), Location.FORMAT_DEGREES)
+                + " Longitude: " + Location.convert(photoLoc.getLongitude(), Location.FORMAT_DEGREES);
+        locText.setText(locString);
+
         // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
         captionView.setText(getCap(capPath));
@@ -363,12 +370,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            }
            // No photos found
            else{
+               //Clean up date field
                TextView dateText = findViewById(R.id.dateText);
                dateText.setText("");
+
+               //Clean up location field
+               TextView locText = findViewById(R.id.locationText);
+               locText.setText("");
+
+               //clean up image field
                ImageView iv = (ImageView) findViewById(R.id.ivGallery);
                iv.setImageBitmap(null);
+
+               //clean up caption field
                EditText captionView = (EditText) findViewById(R.id.editText);
                captionView.setText("Caption");
+
+               //Set text for no picture
                noResult.setText("No photos found. Try adjusting search filters.");
            }
         }
@@ -377,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // Method to generate JPEG file to store image and txt file to store caption
     private File createImageFile() throws IOException {
         // Get location of device
-        fusedLocationClient.getLastLocation();
+         fusedLocationClient.getLastLocation();
 
         // Generate image name with timestamp
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
