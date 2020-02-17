@@ -3,19 +3,19 @@ package com.example.photogalleryapp;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
-
 import android.Manifest;
-import android.content.Context;
+import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,35 +23,51 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.api.client.http.UrlEncodedContent;
 
-import org.w3c.dom.Text;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.mortbay.util.UrlEncoded;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
 
-import javax.xml.transform.Result;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int RC_SIGN_IN = 2;
     public int currentPhotoIndex = 0;
     private ArrayList<String> photoGallery;
     private ArrayList<String> photoCaptions;
     private String currentPhotoPath = null;
     private String currentCaptionPath = null;
-    private String galleryState = null;
     private String captionSearch = null;
     static Date minDate = new Date(Long.MIN_VALUE);
     static Date maxDate = new Date(Long.MAX_VALUE);	// On startup, show all images
@@ -63,6 +79,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int defaultDist = 80000;    // default distance search value
     private double searchDist = defaultDist;
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
+    private static final int REQUEST_EXTERNAL_STORAGE = 200;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    String encodedImage;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,13 +96,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button btnRight = (Button)findViewById(R.id.btnRight);
         Button btnApply = (Button)findViewById(R.id.applyCaption);
         Button btnFilter = (Button)findViewById(R.id.btnFilter);
+        Button btnShare = (Button)findViewById(R.id.share);
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
+        btnShare.setOnClickListener(this);
         btnFilter.setOnClickListener(filterListener);
-        // Request permissions for location
+
+        // Request permissions for peripheral access
+        ActivityCompat.requestPermissions(
+                MainActivity.this,
+                PERMISSIONS_STORAGE,
+                REQUEST_EXTERNAL_STORAGE);
         ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.INTERNET},
                 REQUEST_PERMISSIONS_REQUEST_CODE);
         // Instantiate Location Client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -95,6 +124,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
 
+        /*GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);*/
+
         photoGallery = populateGallery(minDate, maxDate);	// Retrieve photos in date range
         Log.d("onCreate, size", Integer.toString(photoGallery.size()));
         if (photoGallery.size() > 0) {
@@ -104,14 +140,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
     private View.OnClickListener filterListener = new View.OnClickListener() {
         public void onClick(View v) {
             Intent i = new Intent(MainActivity.this, SearchActivity.class);
             startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
         }
     };
-
 
     private ArrayList<String> populateGallery(Date min, Date max) {
         int i = 0;
@@ -258,6 +292,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } catch (IOException e) {}
                 }
                 break;
+            case R.id.share:
+                String filePath = photoGallery.get(currentPhotoIndex);
+                String caption = getCap(photoCaptions.get(currentPhotoIndex));
+
+                // Start server upload
+                //upload(filePath);
+
+                // Start sharing intent to send image to social media platform
+                Bitmap icon = BitmapFactory.decodeFile(filePath);
+                Intent share = new Intent(Intent.ACTION_SEND);
+                share.setType("image/jpeg");
+
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.TITLE, caption);
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        values);
+
+                // Stream encoded image
+                OutputStream outstream;
+                try {
+                    outstream = getContentResolver().openOutputStream(uri);
+                    icon.compress(Bitmap.CompressFormat.JPEG, 100, outstream);
+                    outstream.close();
+                } catch (Exception e) {
+                    System.err.println(e.toString());
+                }
+
+                // Put encoded image in intent along with caption as the subject
+                share.putExtra(Intent.EXTRA_STREAM, uri);
+                share.putExtra(Intent.EXTRA_SUBJECT, caption);
+                startActivity(Intent.createChooser(share, "Share Image"));
+
+                break;
             default:
                 break;
         }
@@ -273,6 +341,63 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d("photoleft, size", Integer.toString(photoGallery.size()));
             Log.d("photoleft, index", Integer.toString(currentPhotoIndex));
             displayPhoto(currentPhotoPath, currentCaptionPath);
+        }
+    }
+
+    private void upload(String picturePath) {
+        // Image location URL
+        Log.e("path", "----------------" + picturePath);
+
+        // Image
+        Bitmap bm = BitmapFactory.decodeFile(picturePath);
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.JPEG, 90, bao);
+        byte[] ba = bao.toByteArray();
+        //ba1 = Base64.encode(ba);
+        encodedImage =Base64.encodeToString(ba,Base64.DEFAULT);
+
+        //Log.e("base64", "-----" + ba1);
+
+        // Upload image to server
+        new uploadToServer().execute();
+        // Set to run in background*********
+
+
+    }
+    public class uploadToServer extends AsyncTask<Void, Void, String> {
+
+        private ProgressDialog pd = new ProgressDialog(MainActivity.this);
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pd.setMessage("Wait image uploading!");
+            pd.show();
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+
+            ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+            nameValuePairs.add(new BasicNameValuePair("base64", encodedImage));
+            nameValuePairs.add(new BasicNameValuePair("Upload", System.currentTimeMillis() + ".jpg"));
+            try {
+                HttpClient httpclient = new DefaultHttpClient();
+                HttpPost httppost = new HttpPost("https://www.googleapis.com/upload/drive/v3/files?uploadType=media");
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                HttpResponse response = httpclient.execute(httppost);
+                String st = EntityUtils.toString(response.getEntity());
+                Log.v("log_tag", "In the try Loop" + st);
+
+            } catch (Exception e) {
+                Log.v("log_tag", "Error in http connection " + e.toString());
+            }
+            return "Success";
+
+        }
+
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            pd.hide();
+            pd.dismiss();
         }
     }
 
@@ -371,6 +496,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                captionView.setText("Caption");
                noResult.setText("No photos found. Try adjusting search filters.");
            }
+        }
+        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
+        else if (requestCode == RC_SIGN_IN) {
+            // The Task returned from this call is always completed, no need to attach
+            // a listener.
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+    }
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+
+            // Signed in successfully, show authenticated UI.
+            //updateUI(account);
+        } catch (ApiException e) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            //Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
+            //updateUI(null);
         }
     }
 
