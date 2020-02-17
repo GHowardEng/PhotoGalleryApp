@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
-        btnFilter.setOnClickListener(filterListener);
+        btnFilter.setOnClickListener(this);   //filterListener
         // Request permissions for location
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
@@ -103,14 +103,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             displayPhoto(currentPhotoPath, currentCaptionPath);
         }
     }
-
-
-    private View.OnClickListener filterListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            Intent i = new Intent(MainActivity.this, SearchActivity.class);
-            startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
-        }
-    };
 
 
     private ArrayList<String> populateGallery(Date min, Date max) {
@@ -264,6 +256,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         setCap(capText.getText().toString(), currentCaptionPath);
                     } catch (IOException e) {}
                 }
+                break;
+            case R.id.btnFilter:
+                Intent i = new Intent(MainActivity.this, SearchActivity.class);
+                startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
                 break;
             default:
                 break;
