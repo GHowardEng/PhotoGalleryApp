@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -100,8 +101,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
+        btnFilter.setOnClickListener(this);   //filterListener
+        // Request permissions for location
         btnShare.setOnClickListener(this);
-        btnFilter.setOnClickListener(filterListener);
 
         // Request permissions for peripheral access
         ActivityCompat.requestPermissions(
@@ -140,12 +142,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private View.OnClickListener filterListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            Intent i = new Intent(MainActivity.this, SearchActivity.class);
-            startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
-        }
-    };
 
     private ArrayList<String> populateGallery(Date min, Date max) {
         int i = 0;
@@ -190,6 +186,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Set textView to show timestamp
         TextView dateText = (TextView) findViewById(R.id.dateText);
         dateText.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(getDate(path)));
+
+        // Set textView to show location
+        TextView locText = (TextView) findViewById(R.id.locationText);
+        Location photoLoc = getLoc(capPath);
+        String locString = "Latitude: " + Location.convert(photoLoc.getLatitude(), Location.FORMAT_DEGREES)
+                + " Longitude: " + Location.convert(photoLoc.getLongitude(), Location.FORMAT_DEGREES);
+        locText.setText(locString);
 
         // Set editText box to show caption for image
         EditText captionView = (EditText) findViewById(R.id.editText);
@@ -291,6 +294,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         setCap(capText.getText().toString(), currentCaptionPath);
                     } catch (IOException e) {}
                 }
+                break;
+            case R.id.btnFilter:
+                Intent i = new Intent(MainActivity.this, SearchActivity.class);
+                startActivityForResult(i, SEARCH_ACTIVITY_REQUEST_CODE);
                 break;
             case R.id.share:
                 String filePath = photoGallery.get(currentPhotoIndex);
@@ -488,12 +495,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            }
            // No photos found
            else{
+               //Clean up date field
                TextView dateText = findViewById(R.id.dateText);
                dateText.setText("");
+
+               //Clean up location field
+               TextView locText = findViewById(R.id.locationText);
+               locText.setText("");
+
+               //clean up image field
                ImageView iv = (ImageView) findViewById(R.id.ivGallery);
                iv.setImageBitmap(null);
+
+               //clean up caption field
                EditText captionView = (EditText) findViewById(R.id.editText);
                captionView.setText("Caption");
+
+               //Set text for no picture
                noResult.setText("No photos found. Try adjusting search filters.");
            }
         }
