@@ -16,10 +16,6 @@ public class SearchActivity extends AppCompatActivity {
     private EditText latitude;
     private EditText longitude;
     private EditText distance;
-    private Calendar fromCalendar;
-    private Calendar toCalendar;
-    private DatePickerDialog.OnDateSetListener fromListener;
-    private DatePickerDialog.OnDateSetListener toListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
