@@ -1,5 +1,6 @@
 package com.example.photogalleryapp;
 
+import com.example.photogalleryapp.Utility.SearchUtility;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
@@ -151,12 +152,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         photoGallery = new ArrayList<String>();
         photoCaptions = new ArrayList<String>();
+        ArrayList<ArrayList<String>> gallery = new ArrayList<ArrayList<String>>();
 
         // Generate array of paths of images to be displayed
         File[] fList = file.listFiles();
         File[] capList = txt.listFiles();
+
+        ArrayList<String[]> photoDetails = new ArrayList<String[]>();
+
         if (fList != null) {
             for (File f : file.listFiles()) {
+                String[] data = new String[6];
+                data[0] = f.getPath();
+                data[1] = capList[i].getPath();
+                data[2] = getCap(data[1]);
+                data[3] = new SimpleDateFormat("yyyyMMdd_HHmmss").format(getDate(data[0]));
+                Location photoLoc = getLoc(data[1]);
+                data[4] = Double.toString(photoLoc.getLatitude());
+                data[5] = Double.toString(photoLoc.getLongitude());
+
+                photoDetails.add(data);
+                i++;
+            }
+        }
+        double[] searchLocDouble = new double[2];
+        searchLocDouble[0] = searchLoc.getLatitude();
+        searchLocDouble[1] = searchLoc.getLongitude();
+
+        gallery = SearchUtility.searchFunc(min, max, captionSearch, searchDist, searchLocDouble, photoDetails);
+        photoGallery = gallery.get(0);
+        photoCaptions = gallery.get(1);
+/*
                 Date date = getDate(f.getPath());
                 loc = getLoc(capList[i].getPath());
                 double dist = getDist(loc, searchLoc);
@@ -173,6 +199,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 i++;
             }
         }
+        */
+
         return photoGallery;
     }
 
