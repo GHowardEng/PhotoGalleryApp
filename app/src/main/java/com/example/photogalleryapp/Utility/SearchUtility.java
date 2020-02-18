@@ -50,7 +50,7 @@ public class SearchUtility {
         return return_vars;
     }
 
-    private static double getDist(double[] loc1, double[] loc2){
+    public static double getDist(double[] loc1, double[] loc2){
         // Radius of Earth in km
         int R = 6371;
         // Get lat/long of points, convert to radians
