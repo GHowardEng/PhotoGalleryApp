@@ -24,17 +24,19 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+/*
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+ */
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.api.client.http.UrlEncodedContent;
 
+/*
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -43,7 +45,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.mortbay.util.UrlEncoded;
+*/
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -54,6 +56,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -111,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 PERMISSIONS_STORAGE,
                 REQUEST_EXTERNAL_STORAGE);
         ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.INTERNET},
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET},
                 REQUEST_PERMISSIONS_REQUEST_CODE);
         // Instantiate Location Client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -177,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void displayPhoto(String path, String capPath) {
+        DecimalFormat df = new DecimalFormat("#.###");
         ImageView iv = (ImageView) findViewById(R.id.ivGallery);
         TextView noResult = (TextView) findViewById((R.id.noResult));
         noResult.setText("");
@@ -190,8 +194,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Set textView to show location
         TextView locText = (TextView) findViewById(R.id.locationText);
         Location photoLoc = getLoc(capPath);
-        String locString = "Latitude: " + Location.convert(photoLoc.getLatitude(), Location.FORMAT_DEGREES)
-                + " Longitude: " + Location.convert(photoLoc.getLongitude(), Location.FORMAT_DEGREES);
+        String locString = "Lat: " + df.format(photoLoc.getLatitude())
+                + " Long: " + df.format(photoLoc.getLongitude());
         locText.setText(locString);
 
         // Set editText box to show caption for image
@@ -351,6 +355,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /*
     private void upload(String picturePath) {
         // Image location URL
         Log.e("path", "----------------" + picturePath);
@@ -406,7 +411,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             pd.hide();
             pd.dismiss();
         }
-    }
+    }*/
 
     public void takePicture(View v) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -432,7 +437,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // at this point the picture should be displayed in the image view
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // Add new picture to gallery and set date range (may need to be changed for filtering)
             captionSearch = null;
@@ -515,14 +520,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                noResult.setText("No photos found. Try adjusting search filters.");
            }
         }
+        /*
         // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
         else if (requestCode == RC_SIGN_IN) {
             // The Task returned from this call is always completed, no need to attach
             // a listener.
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleSignInResult(task);
-        }
+        }*/
     }
+    /*
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
@@ -535,13 +542,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
             //updateUI(null);
         }
-    }
+    }*/
 
     // Method to generate JPEG file to store image and txt file to store caption
     private File createImageFile() throws IOException {
         // Get location of device
+        loc.getLongitude();
         fusedLocationClient.getLastLocation();
-
+        loc.getLongitude();
         // Generate image name with timestamp
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
