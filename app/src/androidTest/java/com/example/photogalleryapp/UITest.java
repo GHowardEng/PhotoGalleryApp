@@ -81,7 +81,7 @@ public class UITest {
     public void ensureSearchingWorks() {
         String startDate = "2020-02-17";
         String endDate   = "2020-02-20";
-        String latitude  = "49.2";
+        String latitude  = "49";
         String longitude = "-122";
         String dist = "100";
 
@@ -135,6 +135,16 @@ public class UITest {
         onView(withId(R.id.search_search)).perform(click());
         onView(withId(R.id.noResult)).check(matches(isTextValueEqualTo(noPhotos)));
 
+        // Show all photos again
+        onView(withId(R.id.btnFilter)).perform((click()));
+        onView(withId(R.id.search_fromDate)).perform(click());
+        onView(withId(R.id.search_fromDate)).perform(typeText("2010-01-01"), closeSoftKeyboard());
+        onView(withId(R.id.search_toDate)).perform(click());
+        onView(withId(R.id.search_toDate)).perform(typeText("2025-01-01"), closeSoftKeyboard());
+        onView(withId(R.id.search_search)).perform(click());
+        onView(withId(R.id.noResult)).check(matches(isTextValueEqualTo("")));
+
+        // Set to distant location
         onView(withId(R.id.btnFilter)).perform((click()));
         onView(withId(R.id.editLat)).perform(click());
         onView(withId(R.id.editLat)).perform(typeText("0.0"), closeSoftKeyboard());
