@@ -79,16 +79,16 @@ public class UITest {
     }
     @Test
     public void ensureSearchingWorks() {
-        String startDate = "2020-01-27";
-        String endDate   = "2020-01-28";
-        String latitude  = "48";
+        String startDate = "2020-02-17";
+        String endDate   = "2020-02-20";
+        String latitude  = "49.2";
         String longitude = "-122";
         String dist = "100";
 
         // Go to search activity
         onView(withId(R.id.btnFilter)).perform((click()));
 
-        // Click on filter boxes, enter start and end dates
+        // Click on filter boxes, enter start and end dates, location data
         onView(withId(R.id.search_fromDate)).perform(click());
         onView(withId(R.id.search_fromDate)).perform(typeText(startDate), closeSoftKeyboard());
         onView(withId(R.id.search_toDate)).perform(click());
@@ -109,6 +109,41 @@ public class UITest {
             onView(withId(R.id.btnRight)).perform(click());
         }
         onView(withId(R.id.dateText)).check(matches(isTextValueEqualTo(startDate)));
+
+        String cap = "Two";
+        // Go to search activity
+        // Type search caption
+        onView(withId(R.id.btnFilter)).perform((click()));
+        onView(withId(R.id.captionText)).perform(click());
+        onView(withId(R.id.captionText)).perform(typeText(cap), closeSoftKeyboard());
+        onView(withId(R.id.search_search)).perform(click());
+
+        // Check only one photo is returned
+        onView(withId(R.id.editText)).check(matches(isTextValueEqualTo(cap)));
+        onView(withId(R.id.btnRight)).perform(click());
+        onView(withId(R.id.btnRight)).perform(click());
+        onView(withId(R.id.editText)).check(matches(isTextValueEqualTo(cap)));
+
+        String noPhotos = "No photos found. Try adjusting search filters.";
+
+        // Test that searching for old dates or distant locations return no results
+        onView(withId(R.id.btnFilter)).perform((click()));
+        onView(withId(R.id.search_fromDate)).perform(click());
+        onView(withId(R.id.search_fromDate)).perform(typeText("2010-01-01"), closeSoftKeyboard());
+        onView(withId(R.id.search_toDate)).perform(click());
+        onView(withId(R.id.search_toDate)).perform(typeText("2014-01-01"), closeSoftKeyboard());
+        onView(withId(R.id.search_search)).perform(click());
+        onView(withId(R.id.noResult)).check(matches(isTextValueEqualTo(noPhotos)));
+
+        onView(withId(R.id.btnFilter)).perform((click()));
+        onView(withId(R.id.editLat)).perform(click());
+        onView(withId(R.id.editLat)).perform(typeText("0.0"), closeSoftKeyboard());
+        onView(withId(R.id.editLong)).perform(click());
+        onView(withId(R.id.editLong)).perform(typeText("0.0"), closeSoftKeyboard());
+        onView(withId(R.id.editDist)).perform(click());
+        onView(withId(R.id.editDist)).perform(typeText(dist), closeSoftKeyboard());
+        onView(withId(R.id.search_search)).perform(click());
+        onView(withId(R.id.noResult)).check(matches(isTextValueEqualTo(noPhotos)));
     }
 
 }
