@@ -106,7 +106,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
         btnFilter.setOnClickListener(this);   //filterListener
-        // Request permissions for location
         btnShare.setOnClickListener(this);
 
         // Request permissions for peripheral access
@@ -461,8 +460,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    // This method is for event handling - specifically the event of returning from the camera activity
-    // at this point the picture should be displayed in the image view
+    // This method is for event handling - specifically the event of returning from other activities
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

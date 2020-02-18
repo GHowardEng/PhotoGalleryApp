@@ -12,7 +12,7 @@ public class SearchUtilityTest {
 
     @Test
     public void search_working() throws Exception{
-        SearchUtility su = new SearchUtility();
+        //SearchUtility su = new SearchUtility();
         ArrayList<String> photoGallery;
         ArrayList<String> photoCaptions;
         ArrayList<ArrayList<String>> gallery = new ArrayList<ArrayList<String>>();
@@ -28,10 +28,10 @@ public class SearchUtilityTest {
         // Generate dummy test data
         for (i =0; i<3; i++){
             String[] temp = new String[6];
-            temp[0] = "sd/file" + Integer.toString(i) + ".jpg";
-            temp[1] = "sd/file" + Integer.toString(i) + ".txt";
-            temp[2] = "cap" + Integer.toString(i);
-            temp[3] = "2020010" + (Integer.toString(i+1)) + "_162324";
+            temp[0] = "sd/file" + i + ".jpg";
+            temp[1] = "sd/file" + i + ".txt";
+            temp[2] = "cap" + i;
+            temp[3] = "2020010" + (i+1) + "_162324";
             temp[4] = "49";
             temp[5] = "-123";
             testDetails.add(temp);
@@ -53,7 +53,7 @@ public class SearchUtilityTest {
         assertEquals(0, photoGallery.size());
         assertEquals(0, photoCaptions.size());
 
-        // Contstrain date, check one returned
+        // Constrain date, check one returned
         minDate = new SimpleDateFormat("yyyyMMdd").parse("20200101");
         maxDate = new SimpleDateFormat("yyyyMMdd").parse("20200102");
         gallery = SearchUtility.searchFunc(minDate, maxDate, caption, dist, searchLocDouble, testDetails);
