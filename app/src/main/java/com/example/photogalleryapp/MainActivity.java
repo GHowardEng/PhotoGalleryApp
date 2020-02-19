@@ -63,7 +63,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -129,13 +128,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
 
-        /*GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
-        GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);*/
-
         photoGallery = populateGallery(minDate, maxDate);	// Retrieve photos in date range
         Log.d("onCreate, size", Integer.toString(photoGallery.size()));
         if (photoGallery.size() > 0) {
@@ -144,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             displayPhoto(currentPhotoPath, currentCaptionPath);
         }
     }
-
 
     private ArrayList<String> populateGallery(Date min, Date max) {
         int i = 0;
@@ -184,24 +175,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         gallery = SearchUtility.searchFunc(min, max, captionSearch, searchDist, searchLocDouble, photoDetails);
         photoGallery = gallery.get(0);
         photoCaptions = gallery.get(1);
-/*
-                Date date = getDate(f.getPath());
-                loc = getLoc(capList[i].getPath());
-                double dist = getDist(loc, searchLoc);
-                if(date.compareTo(min) >= 0 && date.compareTo(max) <=0 && dist <= searchDist) {
-                    if (captionSearch == null) {
-                        photoGallery.add(f.getPath());
-                        photoCaptions.add(capList[i].getPath());
-                    }
-                    else if(getCap(capList[i].getPath()).matches("(.*)" + captionSearch + "(.*)")){
-                        photoGallery.add(f.getPath());
-                        photoCaptions.add(capList[i].getPath());
-                    }
-                }
-                i++;
-            }
-        }
-        */
 
         return photoGallery;
     }
@@ -230,22 +203,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         captionView.setText(getCap(capPath));
     }
 
-    private double getDist(Location loc1, Location loc2){
-        // Radius of Earth in km
-        int R = 6371;
-        // Get lat/long of points, convert to radians
-        double lat1 = loc1.getLatitude() * Math.PI/180;
-        double lat2 = loc2.getLatitude() * Math.PI/180;
-        double long1 = loc1.getLongitude() * Math.PI/180;
-        double long2 = loc2.getLongitude() * Math.PI/180;
-        // Calculate angular difference
-        double dLong= long1 - long2;
-        double dLat = lat1 - lat2;
-
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1) * Math.cos(lat2) *
-                Math.sin(dLong/2) * Math.sin(dLong/2);
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
     private Location getLoc(String path){
         String[] arr = null;
         String content = null;
@@ -475,100 +432,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             currentPhotoPath = photoGallery.get(currentPhotoIndex);
             // Set image view to display newest image
             displayPhoto(currentPhotoPath, currentCaptionPath);
-        }
-        else if (requestCode == REQUEST_IMAGE_CAPTURE){
+        } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
             populateGallery(minDate, maxDate);
             // Delete empty photo and caption files if camera activity does not complete successfully
-            File nullPhoto = new File(photoGallery.get(photoGallery.size()-1));
+            File nullPhoto = new File(photoGallery.get(photoGallery.size() - 1));
             nullPhoto.delete();
 
-            nullPhoto = new File(photoCaptions.get(photoGallery.size()-1));
+            nullPhoto = new File(photoCaptions.get(photoGallery.size() - 1));
             nullPhoto.delete();
 
-            populateGallery(minDate,maxDate);
+            populateGallery(minDate, maxDate);
         }
 
         // If returning from search activity, update all filter variable with error checking
-        else if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
+        else if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
             // Receive search filters from search activity
-            if(startDate != null && endDate != null) {
+            if (startDate != null && endDate != null) {
                 try {
                     startDate = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("STARTDATE"));
                     endDate = new SimpleDateFormat("yyyy-MM-dd").parse(data.getStringExtra("ENDDATE"));
                 } catch (ParseException e) {
                 }
-            }
-            else{
+            } else {
                 startDate = minDate;
                 endDate = maxDate;
             }
-            if (data.getStringExtra("LAT").isEmpty() || data.getStringExtra("LONG").isEmpty()){
+            if (data.getStringExtra("LAT").isEmpty() || data.getStringExtra("LONG").isEmpty()) {
                 searchLoc.setLongitude(0);
                 searchLoc.setLatitude(0);
-            }
-            else {
+            } else {
                 searchLoc.setLatitude(Double.parseDouble(data.getStringExtra("LAT")));
                 searchLoc.setLongitude(Double.parseDouble(data.getStringExtra("LONG")));
             }
-            if(data.getStringExtra("DIST").isEmpty()){
+            if (data.getStringExtra("DIST").isEmpty()) {
                 searchDist = defaultDist;
-            }
-            else{
+            } else {
                 searchDist = Double.parseDouble(data.getStringExtra("DIST"));
             }
             captionSearch = data.getStringExtra("CAPTION");
             TextView noResult = (TextView) findViewById((R.id.noResult));
-           populateGallery(startDate,endDate);
-           currentPhotoIndex = 0;
-           if(photoGallery.size() > 0) {
-               noResult.setText("");
-               displayPhoto(photoGallery.get(currentPhotoIndex), photoCaptions.get(currentPhotoIndex));
-           }
-           // No photos found
-           else{
-               //Clean up date field
-               TextView dateText = findViewById(R.id.dateText);
-               dateText.setText("");
+            populateGallery(startDate, endDate);
+            currentPhotoIndex = 0;
+            if (photoGallery.size() > 0) {
+                noResult.setText("");
+                displayPhoto(photoGallery.get(currentPhotoIndex), photoCaptions.get(currentPhotoIndex));
+            }
+            // No photos found
+            else {
+                //Clean up date field
+                TextView dateText = findViewById(R.id.dateText);
+                dateText.setText("");
 
-               //Clean up location field
-               TextView locText = findViewById(R.id.locationText);
-               locText.setText("");
+                //Clean up location field
+                TextView locText = findViewById(R.id.locationText);
+                locText.setText("");
 
-               //clean up image field
-               ImageView iv = (ImageView) findViewById(R.id.ivGallery);
-               iv.setImageBitmap(null);
+                //clean up image field
+                ImageView iv = (ImageView) findViewById(R.id.ivGallery);
+                iv.setImageBitmap(null);
 
-               //clean up caption field
-               EditText captionView = (EditText) findViewById(R.id.editText);
-               captionView.setText("Caption");
+                //clean up caption field
+                EditText captionView = (EditText) findViewById(R.id.editText);
+                captionView.setText("Caption");
 
-               //Set text for no picture
-               noResult.setText("No photos found. Try adjusting search filters.");
-           }
+                //Set text for no picture
+                noResult.setText("No photos found. Try adjusting search filters.");
+            }
         }
-        /*
-        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
-        else if (requestCode == RC_SIGN_IN) {
-            // The Task returned from this call is always completed, no need to attach
-            // a listener.
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            handleSignInResult(task);
-        }*/
     }
-    /*
-    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
-        try {
-            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-
-            // Signed in successfully, show authenticated UI.
-            //updateUI(account);
-        } catch (ApiException e) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            //Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
-            //updateUI(null);
-        }
-    }*/
 
     // Method to generate JPEG file to store image and txt file to store caption
     private File createImageFile() throws IOException {

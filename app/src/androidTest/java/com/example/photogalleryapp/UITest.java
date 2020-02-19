@@ -80,7 +80,7 @@ public class UITest {
     @Test
     public void ensureSearchingWorks() {
         String startDate = "2020-02-17";
-        String endDate   = "2020-02-20";
+        String endDate   = "2020-02-18";
         String latitude  = "49";
         String longitude = "-122";
         String dist = "100";
