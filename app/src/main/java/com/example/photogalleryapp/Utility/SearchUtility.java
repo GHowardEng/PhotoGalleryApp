@@ -1,7 +1,5 @@
 package com.example.photogalleryapp.Utility;
 
-
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

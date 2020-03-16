@@ -48,6 +48,17 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 */
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,6 +68,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -101,11 +116,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button btnApply = (Button)findViewById(R.id.applyCaption);
         Button btnFilter = (Button)findViewById(R.id.btnFilter);
         Button btnShare = (Button)findViewById(R.id.share);
+        Button btnUpload = (Button)findViewById(R.id.upload);
         btnLeft.setOnClickListener(this);
         btnRight.setOnClickListener(this);
         btnApply.setOnClickListener(this);
-        btnFilter.setOnClickListener(this);   //filterListener
+        btnFilter.setOnClickListener(this);
         btnShare.setOnClickListener(this);
+        btnUpload.setOnClickListener(this);
 
         // Request permissions for peripheral access
         ActivityCompat.requestPermissions(
@@ -321,6 +338,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(Intent.createChooser(share, "Share Image"));
 
                 break;
+
+            case(R.id.upload):
+                upload(photoGallery.get(currentPhotoIndex));
+
+                break;
             default:
                 break;
         }
@@ -339,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    /*
+
     private void upload(String picturePath) {
         // Image location URL
         Log.e("path", "----------------" + picturePath);
@@ -355,12 +377,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Log.e("base64", "-----" + ba1);
 
         // Upload image to server
-        new uploadToServer().execute();
+        new uploadToServer().execute("DataString");
         // Set to run in background*********
 
 
     }
-    public class uploadToServer extends AsyncTask<Void, Void, String> {
+    public class uploadToServer extends AsyncTask<String, String, String> {
 
         private ProgressDialog pd = new ProgressDialog(MainActivity.this);
         protected void onPreExecute() {
@@ -370,24 +392,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        protected String doInBackground(Void... params) {
+        protected String doInBackground(String... params) {
 
-            ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-            nameValuePairs.add(new BasicNameValuePair("base64", encodedImage));
-            nameValuePairs.add(new BasicNameValuePair("Upload", System.currentTimeMillis() + ".jpg"));
+            String urlString = "https://192.168.1.68:8081/midp/hits"; // URL of server. May need to be changed based on IP
+            //String urlString = "https://localhost:8081/midp/hits";  // Use if running emulator on same machine as server
+            String data = params[0]; //data to post
+            OutputStream out = null;
+
             try {
-                HttpClient httpclient = new DefaultHttpClient();
-                HttpPost httppost = new HttpPost("https://www.googleapis.com/upload/drive/v3/files?uploadType=media");
-                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-                HttpResponse response = httpclient.execute(httppost);
-                String st = EntityUtils.toString(response.getEntity());
-                Log.v("log_tag", "In the try Loop" + st);
+                URL url = new URL(urlString);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                out = new BufferedOutputStream(urlConnection.getOutputStream());
 
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
+                writer.write(data);
+                writer.write(encodedImage);
+                writer.flush();
+                writer.close();
+                out.close();
+
+                urlConnection.connect();
             } catch (Exception e) {
-                Log.v("log_tag", "Error in http connection " + e.toString());
+                System.out.println(e.getMessage());
             }
             return "Success";
-
         }
 
         protected void onPostExecute(String result) {
@@ -395,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             pd.hide();
             pd.dismiss();
         }
-    }*/
+    }
 
     public void takePicture(View v) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
