@@ -395,13 +395,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         protected String doInBackground(String... params) {
 
             String urlString = "https://192.168.1.68:8081/midp/hits"; // URL of server. May need to be changed based on IP
-            //String urlString = "https://localhost:8081/midp/hits";  // Use if running emulator on same machine as server
+            //String urlString = "https://10.0.2.2:8081/midp/hits";  // Use if running emulator on same machine as server
             String data = params[0]; //data to post
             OutputStream out = null;
 
             try {
                 URL url = new URL(urlString);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("POST");
+                urlConnection.setDoInput(true);
+                urlConnection.setDoOutput(true);
+
                 out = new BufferedOutputStream(urlConnection.getOutputStream());
 
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
