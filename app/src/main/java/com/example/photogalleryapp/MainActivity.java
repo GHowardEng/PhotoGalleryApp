@@ -444,8 +444,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     strContents += new String(contents, 0, bytesRead);
                 }
 
-                System.out.print(strContents);
-
                 // Output response
                 System.out.println("Response:");
                 System.out.println((strContents));
