@@ -57,6 +57,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -67,8 +68,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -77,6 +80,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int SEARCH_ACTIVITY_REQUEST_CODE = 0;
@@ -361,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
+    byte[] ba = null;
     private void upload(String picturePath) {
         // Image location URL
         Log.e("path", "----------------" + picturePath);
@@ -370,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Bitmap bm = BitmapFactory.decodeFile(picturePath);
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         bm.compress(Bitmap.CompressFormat.JPEG, 90, bao);
-        byte[] ba = bao.toByteArray();
+        ba = bao.toByteArray();
         //ba1 = Base64.encode(ba);
         encodedImage =Base64.encodeToString(ba,Base64.DEFAULT);
 
@@ -392,33 +396,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        protected String doInBackground(String... params) {
+        protected String doInBackground(String... data) {
 
-            String urlString = "https://192.168.1.68:8081/midp/hits"; // URL of server. May need to be changed based on IP
-            //String urlString = "https://10.0.2.2:8081/midp/hits";  // Use if running emulator on same machine as server
-            String data = params[0]; //data to post
+            //String urlString = "http://192.168.1.68:8081/midp/hits"; // URL of server. May need to be changed based on IP
+            String urlString = "http://10.0.2.2:8081/midp/hits";  // Use if running emulator on same machine as server
+            String imDat = data[0]; //data to post
             OutputStream out = null;
 
             try {
+                // Setup URL connection
                 URL url = new URL(urlString);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("POST");
+
                 urlConnection.setDoInput(true);
                 urlConnection.setDoOutput(true);
+                urlConnection.setRequestMethod("POST");
 
+                // Get output stream
                 out = new BufferedOutputStream(urlConnection.getOutputStream());
 
+                // Prepare Tx data as name value pairs
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                params.add(new BasicNameValuePair("image", encodedImage));
+                params.add(new BasicNameValuePair("data", imDat));
+                //params.add(new BasicNameValuePair("thirdParam", paramValue3));
+
+                // Write data
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
-                writer.write(data);
-                writer.write(encodedImage);
+                // Write list of name value pairs
+                writer.write(getQuery(params));
+                //writer.write(encodedImage);
                 writer.flush();
                 writer.close();
                 out.close();
 
+                // Execute connection
                 urlConnection.connect();
+
+                // Get input stream to read respone
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+
+                // Format response stream to string
+                byte[] contents = new byte[1024];
+                int bytesRead = 0;
+                String strContents = "";
+                while((bytesRead = in.read(contents)) != -1) {
+                    strContents += new String(contents, 0, bytesRead);
+                }
+
+                System.out.print(strContents);
+
+                // Output response
+                System.out.println("Response:");
+                System.out.println((strContents));
+
+                urlConnection.disconnect();
+
             } catch (Exception e) {
+                System.out.println("Error:");
                 System.out.println(e.getMessage());
             }
+
             return "Success";
         }
 
@@ -429,6 +467,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException
+    {
+        StringBuilder result = new StringBuilder();
+        boolean first = true;
+
+        for (NameValuePair pair : params)
+        {
+            if (first)
+                first = false;
+            else
+                result.append("&");
+
+            result.append(URLEncoder.encode(pair.getName(), "UTF-8"));
+            result.append("=");
+            result.append(URLEncoder.encode(pair.getValue(), "UTF-8"));
+        }
+
+        return result.toString();
+    }
     public void takePicture(View v) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
