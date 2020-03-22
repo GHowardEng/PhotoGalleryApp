@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case(R.id.upload):
-                upload(photoGallery.get(currentPhotoIndex));
+                upload(photoGallery.get(currentPhotoIndex), photoCaptions.get(currentPhotoIndex));
 
                 break;
             default:
@@ -366,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     byte[] ba = null;
-    private void upload(String picturePath) {
+    private void upload(String picturePath, String capPath) {
         // Image location URL
         Log.e("path", "----------------" + picturePath);
 
@@ -380,11 +380,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Log.e("base64", "-----" + ba1);
 
-        // Upload image to server
-        new uploadToServer().execute("DataString");
-        // Set to run in background*********
+        // Convert image parameters to string and upload image to server
+        String dataString = "";
+        Date imageDate = getDate(picturePath);
+        dataString += new SimpleDateFormat("yyyyMMdd_HHmmss").format(imageDate);
+        dataString += "_" + getCap(capPath);
 
+        Location imageLoc = getLoc(capPath);
+        dataString += "_" + imageLoc.getLatitude() + "_" + imageLoc.getLongitude();
 
+        new uploadToServer().execute(dataString);
     }
     public class uploadToServer extends AsyncTask<String, String, String> {
 
@@ -401,6 +406,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //String urlString = "http://192.168.1.68:8081/midp/hits"; // URL of server. May need to be changed based on IP
             String urlString = "http://10.0.2.2:8081/midp/hits";  // Use if running emulator on same machine as server
             String imDat = data[0]; //data to post
+            System.out.println("Data String: " + imDat);
             OutputStream out = null;
 
             try {
@@ -454,7 +460,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 System.out.println("Error:");
                 System.out.println(e.getMessage());
             }
-
             return "Success";
         }
 
