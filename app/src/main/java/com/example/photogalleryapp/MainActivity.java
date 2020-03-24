@@ -369,7 +369,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void upload(String picturePath, String capPath) {
         // Image location URL
         Log.e("path", "----------------" + picturePath);
-
         // Image
         Bitmap bm = BitmapFactory.decodeFile(picturePath);
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -389,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Location imageLoc = getLoc(capPath);
         dataString += "_" + imageLoc.getLatitude() + "_" + imageLoc.getLongitude();
 
-        new uploadToServer().execute(dataString);
+        new uploadToServer().execute(dataString, getCap(capPath));
     }
     public class uploadToServer extends AsyncTask<String, String, String> {
 
@@ -403,12 +402,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected String doInBackground(String... data) {
 
-            //String urlString = "http://192.168.1.68:8081/midp/hits"; // URL of server. May need to be changed based on IP
-            String urlString = "http://10.0.2.2:8081/midp/hits";  // Use if running emulator on same machine as server
+            //String urlString = "http://192.168.1.68:8081/midp/main"; // URL of server. May need to be changed based on IP
+            String urlString = "http://10.0.2.2:8081/midp/main";  // Use if running emulator on same machine as server
             String imDat = data[0]; //data to post
+            String cap = data[1];
             System.out.println("Data String: " + imDat);
+            System.out.println("CAP: " + cap);
             OutputStream out = null;
-
             try {
                 // Setup URL connection
                 URL url = new URL(urlString);
@@ -423,8 +423,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 // Prepare Tx data as name value pairs
                 List<NameValuePair> params = new ArrayList<NameValuePair>();
+                params.add(new BasicNameValuePair("Poster", "App"));
                 params.add(new BasicNameValuePair("image", encodedImage));
                 params.add(new BasicNameValuePair("data", imDat));
+                params.add(new BasicNameValuePair("name", "IMG_"+cap+".jpeg"));
                 //params.add(new BasicNameValuePair("thirdParam", paramValue3));
 
                 // Write data
